@@ -2,44 +2,45 @@ package com.vote;
 
 import com.vote.config.ApplicationBeans;
 import com.vote.config.JpaConfig;
-import com.vote.controller.PollingController;
-import com.vote.dao.AdminRepository;
-import com.vote.dao.DataRepository;
-import com.vote.dao.PollingRepository;
-import com.vote.entity.*;
-import com.vote.service.PollingService;
-import com.vote.service.PollingServiceImpl;
+import com.vote.config.MvcConfig;
+import com.vote.config.WebSecurityConfig;
+import com.vote.utils.ScriptRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
-import javax.persistence.Query;
-import java.util.List;
+import java.io.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 @SpringBootApplication
 public class VotingAppApplication {
 
 	public static void main(String[] args) {
-		Class<?>[] context = {JpaConfig.class, VotingAppApplication.class, ApplicationBeans.class};
+		Class<?>[] context = {JpaConfig.class, VotingAppApplication.class,
+				ApplicationBeans.class, WebSecurityConfig.class, MvcConfig.class};
 		ConfigurableApplicationContext run = SpringApplication.run(context, args);
-		AdminRepository repository = (AdminRepository) run.getBean("adminRepository");
-		method(repository);
-		System.out.println();
+		LocalContainerEntityManagerFactoryBean bean =
+				run.getBean(LocalContainerEntityManagerFactoryBean.class);
+		initializeDatabase(bean);
 	}
 
-	private static void method(AdminRepository repository) {
-		Query query1 = repository.getEntityManager().createNativeQuery("SELECT * FROM person p WHERE p.id=1", Person.class);
-		Query query2 = repository.getEntityManager().createNativeQuery("SELECT * FROM polling_schedule p WHERE p.id=1", PollingSchedule.class);
-		Query query3 = repository.getEntityManager().createNativeQuery("SELECT * FROM vote p WHERE p.id=1", Vote.class);
-		Query query4 = repository.getEntityManager().createNativeQuery("SELECT * FROM polling p WHERE p.id=1", Polling.class);
-		List list1 = query1.getResultList();
-		List list2 = query2.getResultList();
-		List list3 = query3.getResultList();
-		List list4 = query4.getResultList();
-		List<PollingSchedule> variants = ((Polling) list4.get(0)).getVariants();
-		variants.forEach(System.out::println);
-		System.out.println();
+	private static void initializeDatabase(LocalContainerEntityManagerFactoryBean bean) {
+		System.out.println("Start database initializing.......");
+		try {
+			Connection connection = bean.getDataSource().getConnection("admin", "root");
+			ScriptRunner runner = new ScriptRunner(connection, false, true);
+			runner.setErrorLogWriter(new PrintWriter(System.err));
+			runner.setLogWriter(new PrintWriter(System.out));
+			InputStream resource = VotingAppApplication.class.getResourceAsStream("/sql/sql.sql");
+			runner.runScript(new BufferedReader(new InputStreamReader(resource)));
+		} catch (SQLException e) {
+			System.out.println("Problems with start initialize of database");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Problems with sql script obtain");
+			e.printStackTrace();
+		}
 	}
-
-
 }

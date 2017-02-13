@@ -1,5 +1,7 @@
 CREATE DATABASE IF NOT EXISTS default_database;
 
+DROP DATABASE IF EXISTS voting;
+
 CREATE DATABASE IF NOT EXISTS voting;
 
 USE voting;
@@ -8,44 +10,57 @@ DROP TABLE IF EXISTS vote;
 DROP TABLE IF EXISTS polling_schedule;
 DROP TABLE IF EXISTS polling;
 DROP TABLE IF EXISTS person;
+DROP TABLE IF EXISTS account;
+
+CREATE TABLE account
+(
+    id       INT PRIMARY KEY AUTO_INCREMENT,
+    email    VARCHAR(50) NOT NULL,
+    password VARCHAR(50) NOT NULL,
+    role     VARCHAR(50) NOT NULL
+);
+
+CREATE INDEX ix_account_email ON account(email);
 
 CREATE TABLE person
 (
-	  id			INT PRIMARY KEY AUTO_INCREMENT,
+    id			    INT PRIMARY KEY AUTO_INCREMENT,
     first_name 	VARCHAR(50) NOT NULL,
-    last_name	VARCHAR(50) NOT NULL,
-    email		VARCHAR(50) NOT NULL,
-    birthday 	DATE
+    last_name 	VARCHAR(50) NOT NULL,
+    email		    VARCHAR(50) NOT NULL,
+    birthday 	  DATE,
+    FOREIGN KEY (id) REFERENCES account(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (email) REFERENCES account(email) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE polling
 (
-	id			INT PRIMARY KEY AUTO_INCREMENT,
-    poll_name	VARCHAR(50) NOT NULL,
+	  id			    INT PRIMARY KEY AUTO_INCREMENT,
+    poll_name	  VARCHAR(50) NOT NULL,
     description varchar(255),
-    owner_id	INT,
+    owner_id	  INT,
     start_time	TIMESTAMP NULL DEFAULT NULL,
-    end_time 	TIMESTAMP NULL DEFAULT NULL,
+    end_time 	  TIMESTAMP NULL DEFAULT NULL,
     INDEX(owner_id),
     FOREIGN KEY (owner_id) REFERENCES person(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE TABLE polling_schedule
 (
-	id			INT PRIMARY KEY AUTO_INCREMENT,
-    polling_id	INT NOT NULL,
-    poll_var	VARCHAR(255) NOT NULL,
+	  id			   INT PRIMARY KEY AUTO_INCREMENT,
+    polling_id INT NOT NULL,
+    poll_var	 VARCHAR(255) NOT NULL,
     INDEX(polling_id),
     FOREIGN KEY (polling_id) REFERENCES polling(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE vote
 (
-	id			INT PRIMARY KEY AUTO_INCREMENT,
-    voter_id	INT,
+	  id			    INT PRIMARY KEY AUTO_INCREMENT,
+    voter_id	  INT,
     polling_id	INT,
     poll_var_id INT,
-	date_time	TIMESTAMP NOT NULL,
+	  date_time	  TIMESTAMP NOT NULL,
     INDEX(voter_id),
     INDEX(polling_id),
     INDEX(poll_var_id),
@@ -53,6 +68,10 @@ CREATE TABLE vote
     FOREIGN KEY (polling_id) REFERENCES polling(id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (poll_var_id) REFERENCES polling_schedule(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
+
+INSERT INTO account (email, password, role)
+VALUES ("jack.morris@gmail.com", "root", "ADMIN"),
+("john.mock@gmail.com", "mypass", "USER");
 
 INSERT INTO person (first_name, last_name, email, birthday)
 VALUES ("Jack", "Morris", "jack.morris@gmail.com", "1988-10-11"),
