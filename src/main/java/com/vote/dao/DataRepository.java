@@ -12,11 +12,11 @@ import java.util.List;
  */
 public interface DataRepository {
 
-	void createPolling(Polling polling);
-
 	List<Polling> getPolling(Integer id);
 
-	void createPollingSchedule(List<PollingSchedule> variants);
+	List<Polling> getPollingList(Integer startIndex, Integer count);
+
+	void createPolling(Polling polling);
 
 	void updatePolling(Polling polling);
 

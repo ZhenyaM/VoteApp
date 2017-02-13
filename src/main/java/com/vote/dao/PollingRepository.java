@@ -13,8 +13,11 @@ import java.util.List;
 /**
  * {@author Evgeniy}
  */
-@Repository("dataRepository")
+@Repository("pollingRepository")
 public class PollingRepository implements DataRepository {
+
+	private static final String SQL_BY_ID = "select p from com.vote.entity.Polling p where p.id=:id";
+	private static final String SQL_PART = "select p from com.vote.entity.Polling p where p.id>=:id";
 
 	@PersistenceContext
 	private EntityManager manager;
@@ -26,13 +29,15 @@ public class PollingRepository implements DataRepository {
 
 	@Override
 	public List<Polling> getPolling(Integer id) {
-		return this.manager.createQuery("select p from com.vote.entity.Polling p where p.id=:id")
-				.setParameter("id", id).getResultList();
+		return this.manager.createQuery(SQL_BY_ID).setParameter("id", id).getResultList();
 	}
 
 	@Override
-	public void createPollingSchedule(List<PollingSchedule> variants) {
-		variants.forEach(this.manager::persist);
+	public List<Polling> getPollingList(Integer startIndex, Integer count) {
+		return this.manager.createQuery(SQL_PART)
+				.setParameter("id", startIndex - 1)
+				.setMaxResults(count)
+				.getResultList();
 	}
 
 	@Override
