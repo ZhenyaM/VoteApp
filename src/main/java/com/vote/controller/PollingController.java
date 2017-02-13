@@ -1,8 +1,6 @@
 package com.vote.controller;
 
-import com.vote.entity.DomainObject;
 import com.vote.entity.Polling;
-import com.vote.entity.PollingSchedule;
 import com.vote.entity.Vote;
 import com.vote.service.PollingService;
 import com.vote.utils.Result;
@@ -12,12 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,23 +24,39 @@ public class PollingController {
 	private PollingService service;
 
 	@RequestMapping(value = "/index", method = RequestMethod.GET)
-	public ModelAndView index() throws IOException {
+	public ModelAndView index() {
 		return new ModelAndView("index");
 	}
 
+	@RequestMapping(value = "/polling", method = RequestMethod.GET)
+	public String getPolling() {
+		return "polling";
+	}
+
+	@RequestMapping(value = "/polling/list", method = RequestMethod.GET)
+	public @ResponseBody List<Polling> getPollingList(@RequestParam("startIndex") Integer startIndex,
+								 					  @RequestParam("count") Integer count) {
+		return this.service.getPollingList(startIndex, count);
+	}
+
+	@RequestMapping(value = "/polling/form", method = RequestMethod.GET)
+	public String getPollingForm() {
+		return "createPolling";
+	}
+
 	@RequestMapping(value = "create", method = RequestMethod.POST)
-	public String createPolling(@ModelAttribute("polling") Polling polling,
-								@ModelAttribute("schedule") List<PollingSchedule> schedules) {
-		this.service.createPolling(polling, schedules);
-		return "redirect:/polling/" + polling.getId();
+	public String createPolling(@ModelAttribute("polling") Polling polling) {
+		//this.service.createPolling(polling);
+		System.out.println(polling);
+		return "redirect:/polling/" + 1;
 	}
 
 	@RequestMapping(value = "/polling/{id}", method = RequestMethod.GET)
-	public @ResponseBody Polling getPolling(@PathVariable("id") Integer id) {
-		Map<String, DomainObject> map = new HashMap<>(2);
+	public ModelAndView getPolling(@PathVariable("id") Integer id) {
 		Polling polling = this.service.getPolling(id);
-		map.put("polling", polling);
-		return polling;
+		ModelAndView view = new ModelAndView("polling");
+		view.addObject("polling", polling);
+		return view;
 	}
 
 	@RequestMapping(value = "/polling/{id}/start", method = RequestMethod.POST)
@@ -70,30 +78,5 @@ public class PollingController {
 	public @ResponseBody
 	List<Vote> getPollingData(@PathVariable("id") Integer id) {
 		return this.service.getVotes(id);
-	}
-
-	private List<String> getResourceFiles( String path ) {
-		List<String> filenames = new ArrayList<>();
-
-		try(
-				InputStream in = getResourceAsStream( path );
-				BufferedReader br = new BufferedReader( new InputStreamReader( in ) ) ) {
-			String resource;
-
-			while( (resource = br.readLine()) != null ) {
-				filenames.add( resource );
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
-
-		return filenames;
-	}
-
-	private InputStream getResourceAsStream( String resource ) {
-		final InputStream in = Thread.currentThread()
-				.getContextClassLoader().getResourceAsStream(resource);
-
-		return in == null ? getClass().getResourceAsStream( resource ) : in;
 	}
 }
