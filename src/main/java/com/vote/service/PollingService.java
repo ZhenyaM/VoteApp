@@ -13,9 +13,11 @@ import java.util.Map;
  */
 public interface PollingService {
 
-	void createPolling(Polling polling, List<PollingSchedule> schedule);
-
 	Polling getPolling(Integer id);
+
+	List<Polling> getPollingList(Integer startIndex, Integer count);
+
+	void createPolling(Polling polling);
 
 	Result startPolling(Integer id);
 

@@ -14,11 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -35,9 +31,9 @@ public class PollingServiceImpl implements PollingService {
 
 	@Transactional
 	@Override
-	public void createPolling(Polling polling, List<PollingSchedule> schedule) {
+	public void createPolling(Polling polling) {
+		polling.getVariants().forEach((v) -> v.setPolling(polling));
 		this.dao.createPolling(polling);
-		this.dao.createPollingSchedule(schedule);
 	}
 
 	@Transactional
@@ -50,6 +46,12 @@ public class PollingServiceImpl implements PollingService {
 			//TODO:handle this case
 			return null;
 		}
+	}
+
+	@Transactional
+	@Override
+	public List<Polling> getPollingList(Integer startIndex, Integer count) {
+		return this.dao.getPollingList(startIndex, count);
 	}
 
 	@Transactional
