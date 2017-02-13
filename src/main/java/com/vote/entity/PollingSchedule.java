@@ -1,5 +1,7 @@
 package com.vote.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 /**
@@ -9,6 +11,8 @@ import javax.persistence.*;
 @Table(name = "polling_schedule")
 public class PollingSchedule extends DomainIdObject {
 
+	@JsonIgnore
+	@ManyToOne
 	@JoinColumn(name = "polling_id")
 	private Polling polling;
 

@@ -27,8 +27,7 @@ public class Polling extends DomainIdObject {
 	@Column(name = "description")
 	private String description;
 
-	@ManyToMany(targetEntity = PollingSchedule.class, mappedBy = "polling", fetch = FetchType.EAGER)
-	//@Filter(name = "idFilter", condition = "polling.id=id")
+	@OneToMany(targetEntity = PollingSchedule.class, mappedBy = "polling", fetch = FetchType.EAGER)
 	private List<PollingSchedule> variants;
 
 	@Column(name = "start_time")
