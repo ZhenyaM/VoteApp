@@ -1,10 +1,16 @@
 package com.vote.entity;
 
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.vote.utils.converters.DateTimeDeserializer;
+import com.vote.utils.converters.DateTimeSerializer;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +18,6 @@ import java.util.List;
  * {@author Evgeniy}
  */
 @Entity
-//@FilterDef(name = "idFilter")
 @Table(name = "polling")
 @SecondaryTable(name = "polling_schedule")
 public class Polling extends DomainIdObject {
@@ -21,18 +26,28 @@ public class Polling extends DomainIdObject {
 	@JoinColumn(name = "owner_id")
 	private Person owner;
 
+	@NotNull
+	@Length(min = 4, max = 50)
 	@Column(name = "poll_name")
 	private String name;
 
 	@Column(name = "description")
 	private String description;
 
-	@OneToMany(targetEntity = PollingSchedule.class, mappedBy = "polling", fetch = FetchType.EAGER)
+	@Valid
+	@NotNull
+	@NotEmpty
+	@OneToMany(targetEntity = PollingSchedule.class, mappedBy = "polling",
+			fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	private List<PollingSchedule> variants;
 
+	@JsonSerialize(using = DateTimeSerializer.class)
+	@JsonDeserialize(using = DateTimeDeserializer.class)
 	@Column(name = "start_time")
 	private LocalDateTime startTime;
 
+	@JsonSerialize(using = DateTimeSerializer.class)
+	@JsonDeserialize(using = DateTimeDeserializer.class)
 	@Column(name = "end_time")
 	private LocalDateTime endTime;
 
