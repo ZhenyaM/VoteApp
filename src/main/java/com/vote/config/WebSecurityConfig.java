@@ -7,6 +7,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.sql.DataSource;
 
@@ -22,24 +24,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	private DataSource source;
 
 	@Autowired
-	public void configAuthentication(AuthenticationManagerBuilder auth) throws Exception {
+	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.jdbcAuthentication().dataSource(this.source)
-				.usersByUsernameQuery("select email, password from account where email=?")
-				.authoritiesByUsernameQuery("select email, role from account where email=?");
+				.usersByUsernameQuery("select email, password, 1 from account where email=?")
+				.authoritiesByUsernameQuery("select email, role, 1 from account where email=?");
 	}
-
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+		SimpleUrlAuthenticationSuccessHandler loginSuccessHandler = new SimpleUrlAuthenticationSuccessHandler("/polling");
+		AntPathRequestMatcher logout = new AntPathRequestMatcher("/logout");
 		http
-				.authorizeRequests().antMatchers("/polling/**")
-				.hasAnyRole("ROLE_ADMIN", "ROLE_USER").anyRequest().permitAll()
+				.authorizeRequests().antMatchers("/polling/**", "/vote")
+				.hasAnyAuthority("ADMIN", "USER")
+				.antMatchers("/**").permitAll()
 				.and()
-				.formLogin().loginPage("/login").loginProcessingUrl("j_spring_security_check")
+				.formLogin().loginPage("/login").successHandler(loginSuccessHandler)
 				.usernameParameter("email").passwordParameter("password")
 				.and()
-				.logout().logoutSuccessUrl("/login?logout")
-				.and().exceptionHandling().accessDeniedPage("/error/403")
+				.logout().logoutRequestMatcher(logout).logoutSuccessUrl("/index")
 				.and()
-				.csrf();
+				.csrf().disable();
 	}
 }
