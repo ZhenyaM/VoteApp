@@ -1,8 +1,10 @@
 package com.vote.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * {@author Evgeniy}
@@ -16,6 +18,8 @@ public class PollingSchedule extends DomainIdObject {
 	@JoinColumn(name = "polling_id")
 	private Polling polling;
 
+	@NotNull
+	@NotEmpty
 	@Column(name = "poll_var")
 	private String pollingVariant;
 
