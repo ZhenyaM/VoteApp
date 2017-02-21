@@ -1,42 +1,50 @@
 package com.vote.controller;
 
+import com.vote.entity.Person;
 import com.vote.entity.Polling;
-import com.vote.entity.Vote;
+import com.vote.service.AccountService;
 import com.vote.service.PollingService;
-import com.vote.utils.Result;
+import com.vote.utils.Utils;
+import com.vote.utils.exeception.MultiValueException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
+import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * {@author Evgeniy}
  */
 @Controller
-public class PollingController {
+public class PollingController extends ExceptionHandlerController {
 
 	@Autowired
 	@Qualifier("pollingService")
-	private PollingService service;
+	private PollingService pollingService;
 
-	@RequestMapping(value = "/index", method = RequestMethod.GET)
-	public ModelAndView index() {
-		return new ModelAndView("index");
-	}
+	@Autowired
+	@Qualifier("accountService")
+	private AccountService accountService;
 
 	@RequestMapping(value = "/polling", method = RequestMethod.GET)
 	public String getPolling() {
-		return "polling";
+		return "polling_list";
 	}
 
 	@RequestMapping(value = "/polling/list", method = RequestMethod.GET)
-	public @ResponseBody List<Polling> getPollingList(@RequestParam("startIndex") Integer startIndex,
-								 					  @RequestParam("count") Integer count) {
-		return this.service.getPollingList(startIndex, count);
+	public @ResponseBody List<Polling> getPollingList(@RequestParam(value = "startIndex", defaultValue = "1") Integer startIndex,
+								 					  @RequestParam(value = "count", defaultValue = "10") Integer count) {
+		return this.pollingService.getPollingList(startIndex, count);
 	}
 
 	@RequestMapping(value = "/polling/form", method = RequestMethod.GET)
@@ -44,39 +52,45 @@ public class PollingController {
 		return "createPolling";
 	}
 
-	@RequestMapping(value = "create", method = RequestMethod.POST)
-	public String createPolling(@ModelAttribute("polling") Polling polling) {
-		//this.service.createPolling(polling);
-		System.out.println(polling);
-		return "redirect:/polling/" + 1;
+	@RequestMapping(value = "/polling/form", method = RequestMethod.POST)
+	public String createPolling(@RequestBody @Valid Polling polling, BindingResult result, Authentication auth) {
+		if (result.hasErrors()) {
+			throw Utils.getMultiValueException(result.getAllErrors());
+		}
+		this.pollingService.createPolling(polling, this.accountService.getPersonFromAuthentication(auth));
+		return "redirect:/polling/" + polling.getId();
 	}
 
 	@RequestMapping(value = "/polling/{id}", method = RequestMethod.GET)
-	public ModelAndView getPolling(@PathVariable("id") Integer id) {
-		Polling polling = this.service.getPolling(id);
-		ModelAndView view = new ModelAndView("polling");
-		view.addObject("polling", polling);
-		return view;
+	public String getPolling(@PathVariable("id") Integer id) {
+		return "polling";
+	}
+
+	@RequestMapping(value = "/polling/{id}/value", method = RequestMethod.GET)
+	public @ResponseBody Map<String, Object> getPollingValue(@PathVariable("id") Integer id, Authentication auth) {
+		Polling polling = this.pollingService.getPolling(id);
+		if (polling == null) {
+			throw new IllegalArgumentException("Current polling not exist: " + id);
+		} else {
+			Map<String, Object> map = new HashMap<>();
+			map.put("data", polling);
+			String email = ((User) auth.getPrincipal()).getUsername();
+			map.put("isOwner", polling.getOwner().getEmail().equals(email));
+			return map;
+		}
 	}
 
 	@RequestMapping(value = "/polling/{id}/start", method = RequestMethod.POST)
-	public @ResponseBody Result startPolling(@PathVariable("id") Integer id) {
-		return this.service.startPolling(id);
+	public @ResponseBody String startPolling(@PathVariable("id") Integer id, Authentication auth) {
+		Person person = this.accountService.getPersonFromAuthentication(auth);
+		this.pollingService.startPolling(id, person);
+		return "Polling start successful";
 	}
 
 	@RequestMapping(value = "/polling/{id}/stop", method = RequestMethod.POST)
-	public @ResponseBody Result stopPolling(@PathVariable("id") Integer id) {
-		return this.service.startPolling(id);
-	}
-
-	@RequestMapping(value = "/polling/{id}/statistic", method = RequestMethod.GET)
-	public @ResponseBody Map<String, Long> getVoteStatistic(@PathVariable("id") Integer id) {
-		return this.service.getVotesStatistic(id);
-	}
-
-	@RequestMapping(value = "/polling/{id}/data", method = RequestMethod.GET)
-	public @ResponseBody
-	List<Vote> getPollingData(@PathVariable("id") Integer id) {
-		return this.service.getVotes(id);
+	public @ResponseBody String stopPolling(@PathVariable("id") Integer id, Authentication auth) {
+		Person person = this.accountService.getPersonFromAuthentication(auth);
+		this.pollingService.endPolling(id, person);
+		return "Polling end successful";
 	}
 }
