@@ -2,6 +2,7 @@ package com.vote.utils.converters;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,21 +15,25 @@ import java.util.Date;
 @Converter(autoApply = true)
 public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime, Date> {
 
-	private final static String PATTERN = "yyyy-MM-dd HH-mm-ss";
+	public static final String PATTERN = "yyyy-MM-dd HH-mm-ss";
+	public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(PATTERN);
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(PATTERN);
 
 	@Override
 	public Date convertToDatabaseColumn(LocalDateTime attribute) {
-		return attribute != null ? Date.from(Instant.from(attribute)) : null;
+		try {
+			return attribute == null ? null :
+					DATE_FORMATTER.parse(attribute.format(FORMATTER));
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
 	public LocalDateTime convertToEntityAttribute(Date dbData) {
-		if (dbData == null) {
-			return null;
-		}
-
-		SimpleDateFormat format = new SimpleDateFormat(PATTERN);
-		return LocalDateTime.parse(format.format(dbData), DateTimeFormatter.ofPattern(PATTERN));
+		return dbData == null ? null :
+				LocalDateTime.parse(DATE_FORMATTER.format(dbData), FORMATTER);
 
 	}
 }

@@ -14,7 +14,9 @@ import java.util.Date;
 @Converter(autoApply = true)
 public class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
 
-	private static final String PATTERN = "yyyy-MM-dd";
+	public static final String PATTERN = "yyyy-MM-dd";
+	public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat(PATTERN);
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(PATTERN);
 
 	@Override
 	public Date convertToDatabaseColumn(LocalDate attribute) {
@@ -23,12 +25,7 @@ public class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
 
 	@Override
 	public LocalDate convertToEntityAttribute(Date dbData) {
-		if (dbData == null) {
-			return null;
-		}
-
-		SimpleDateFormat format = new SimpleDateFormat(PATTERN);
-		return LocalDate.parse(format.format(dbData), DateTimeFormatter.ofPattern(PATTERN));
-
+		return dbData == null ? null :
+				LocalDate.parse(DATE_FORMATTER.format(dbData), FORMATTER);
 	}
 }
