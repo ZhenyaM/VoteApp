@@ -1,7 +1,6 @@
 package com.vote.dao;
 
 import com.vote.entity.Polling;
-import com.vote.entity.Vote;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -12,7 +11,7 @@ import java.util.List;
  * {@author Evgeniy}
  */
 @Repository("pollingRepository")
-public class PollingRepositoryImpl implements DataRepository {
+public class PollingRepositoryImpl implements PollingRepository {
 
 	private static final String SQL_BY_ID = "select p from com.vote.entity.Polling p where p.id=:id";
 	private static final String SQL_PART = "select p from com.vote.entity.Polling p where p.id>=:id";
@@ -41,19 +40,6 @@ public class PollingRepositoryImpl implements DataRepository {
 	@Override
 	public void updatePolling(Polling polling) {
 		this.manager.merge(polling);
-	}
-
-	@Override
-	public List<Vote> getVotesOfPolling(Polling polling) {
-		String queryString = "select v from com.vote.entity.Vote v where v.polling=:polling";
-		return this.manager
-				.createQuery(queryString)
-				.setParameter("polling", polling).getResultList();
-	}
-
-	@Override
-	public void registerVote(Vote vote) {
-		this.manager.persist(vote);
 	}
 
 }
