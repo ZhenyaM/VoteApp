@@ -1,75 +1,76 @@
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>YourApp</title>
+    <title>Polling Platform</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-</head>
-<body>
-<h1> HELLO WORLD </h1>
-<input type="text" id="data"/>
-<a id="post" href="#">POST</a>
-<a id="get" href="#">GET</a>
-
-<div id="container"></div>
-</body>
-
-<script>
-    $('#get').click(function(){
-        $.getJSON('/polling/2', {type: "GET", data:"", cache:false}, function(data){
-            var showData = $("#show-data");
-           console.log(data);
-
-            var buff = "";
-            buff += '<li>' + data.id + '</li>';
-            buff += '<li>' + data.owner + '</li>';
-            buff += '<li>' + data.name + '</li>';
-            buff += '<li>' + data.description + '</li>';
-
-            $('#container').html(buff);
-        });
-    });
-/*    $('#get').click(function () {
-        $.ajax({
-            dataType: 'json',
-            type: "GET",
-            cache: false,
-            url: '/polling/1',
-            data: data,
-            success: function (response) {
-                console.log(response);
-                console.log('\n');
-                var html = "";
-                $.each(response.data, function (i) {
-                    console.log(response.data[i]);
-                    html = html + response.data[i] + "<br/>";
-                });
-                $('#container').html(html);
-            }
-        });
-    })*/;
-
-    $('#post').click(function () {
-        if (!$("#data").val()) {
-            alert("Enter your data!");
-        } else {
-            $.ajax({
-                type: "POST",
-                cache: false,
-                url: '/persist',
-                data: {
-                    'data': $("#data").val()
-                },
-                success: function (response) {
-                    $('#get').click();
-                }
-            });
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        .size18 {
+            font-size: 18px;
         }
+    </style>
+</head>
+<body id="body">
+<br/><br/>
 
-    });
+<h1 class="text-center">Welcome to the Polling Platform</h1>
+<br/><br/><br/><br/>
 
-</script>
+<div class="size18 text-center">
+    For getting start in polling you need to <a href="#" data-toggle="modal" data-target="#loginForm">log in</a> or
+    <a href="#" data-toggle="modal" data-target="#registerForm">create</a> a new account.
+</div>
+<div id="loginForm" class="modal fade" role="dialog">
+    <div class="modal-dialog">
 
+        <form name="loginForm" action="/login" method="post" class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-center">Input your log in data</h4>
+            </div>
+            <div class="modal-body">
+                <label for="email">Email: </label>
+                <input type="text" name="email" id="email" class="form-control"/>
+                <br/>
+                <label for="password">Password: </label>
+                <input type="password" name="password" id="password" class="form-control"/>
+            </div>
+            <div class="modal-footer row">
+                <div class="col-sm-3"><input type="submit" value="Log in" class="btn"/></div>
+                <div class="col-sm-5"></div>
+                <div class="col-sm-3"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+            </div>
+        </form>
+
+    </div>
+</div>
+<div id="registerForm" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <form name="registerForm" action="/register" method="post" class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title text-center">Input your log in data</h4>
+            </div>
+            <div class="modal-body">
+                <label for="emailReg">Email: </label>
+                <input type="text" name="email" id="emailReg" class="form-control"/>
+                <br/>
+                <label for="passwordReg">Password: </label>
+                <input type="password" name="password" id="passwordReg" class="form-control"/>
+                <br/>
+                <label for="confirmPassword">Password: </label>
+                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control"/>
+            </div>
+            <div class="modal-footer row">
+                <div class="col-sm-3"><input type="submit" value="Log in" class="btn"/></div>
+                <div class="col-sm-5"></div>
+                <div class="col-sm-3"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+            </div>
+        </form>
+
+    </div>
+</div>
+</body>
 </html>
