@@ -11,7 +11,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 public class ApplicationBeans {
 
 	@Bean(name = "pollingRepository")
-	public DataRepository getPollingRepository() {
+	public PollingRepository getPollingRepository() {
 		return new PollingRepositoryImpl();
 	}
 
