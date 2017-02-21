@@ -1,4 +1,4 @@
-package com.vote.utils;
+package com.vote.utils.converters;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

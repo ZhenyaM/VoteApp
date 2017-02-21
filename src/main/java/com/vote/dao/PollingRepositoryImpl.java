@@ -1,9 +1,7 @@
 package com.vote.dao;
 
 import com.vote.entity.Polling;
-import com.vote.entity.PollingSchedule;
 import com.vote.entity.Vote;
-import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -14,7 +12,7 @@ import java.util.List;
  * {@author Evgeniy}
  */
 @Repository("pollingRepository")
-public class PollingRepository implements DataRepository {
+public class PollingRepositoryImpl implements DataRepository {
 
 	private static final String SQL_BY_ID = "select p from com.vote.entity.Polling p where p.id=:id";
 	private static final String SQL_PART = "select p from com.vote.entity.Polling p where p.id>=:id";

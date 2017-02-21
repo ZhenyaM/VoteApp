@@ -1,13 +1,37 @@
 package com.vote.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
 /**
  * {@author Evgeniy}
  */
-public interface Account {
+@Entity
+@Table(name = "account")
+public class Account extends DomainIdObject implements Account {
 
-	String getEmail();
+	@Column(name = "email")
+	private String email;
 
-	String getPassword();
+	@Column(name = "password")
+	private String password;
 
-	String getRole();
+	@Column(name = "role")
+	private String role;
+
+	@Override
+	public String getEmail() {
+		return null;
+	}
+
+	@Override
+	public String getPassword() {
+		return null;
+	}
+
+	@Override
+	public String getRole() {
+		return null;
+	}
 }
