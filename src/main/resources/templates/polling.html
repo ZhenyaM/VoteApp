@@ -1,0 +1,64 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/js/polling.js"></script>
+    <style>
+        label {
+            white-space: pre-wrap;
+        }
+
+        .button {
+            padding: 10px 15px;
+            background: #4479BA;
+            color: #FFF;
+        }
+    </style>
+</head>
+<body>
+<form ng-app="Polling" ng-controller="PollingController">
+    <div class="row">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-8">
+            <h1 class="text-center">{{data.name}}</h1>
+
+            <h3 class="text-center">{{data.description}}</h3>
+
+            <div ng-if="!data.startTime">
+                <h3 class="text-center">Polling not started yet</h3>
+
+                <div ng-if="isOwner">
+                    <a href="#" name="start" ng-click="startPolling()" class="button col-sm-offset-6">Start
+                        Polling</a>
+                </div>
+            </div>
+            <div ng-if="data.startTime">
+                <h3 class="text-center">Polling was start at {{data.startTime | date : "yyyy-MM-dd HH-mm-ss"}}</h3>
+            </div>
+            <div ng-if="data.endTime">
+                <h3 class="text-center">Polling was ended at {{data.endTime | date : "yyyy-MM-dd HH-mm-ss"}}</h3>
+            </div>
+            <div ng-if="isOwner &amp;&amp; data.startTime &amp;&amp; !data.endTime">
+                <a href="#" name="end" ng-click="endPolling()" class="button col-sm-offset-6">End Polling</a>
+            </div>
+
+            <div class="radio">
+                <div ng-repeat="val in data.variants track by val.id">
+                    <div class="col-sm-1">{{statistic[val.pollingVariant]}}</div>
+                    <label><input name="group" type="radio" ng-model="$parent.radioButton"
+                                  value="{{val.pollingVariant}}"/>{{val.pollingVariant}}</label>
+                    <br/>
+                </div>
+            </div>
+            <a href="#" ng-click="vote()" class="button col-sm-offset-6">Vote</a>
+
+        </div>
+        <div class="col-sm-2"></div>
+    </div>
+</form>
+
+</body>
+</html>

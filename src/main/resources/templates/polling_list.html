@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title>List of polling</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        var app = angular.module("PollingList", []);
+        app.controller("PollingController", function ($scope, $http) {
+            $scope.startIndex = 1;
+            $scope.count = 10;
+            $scope.data = [];
+            $scope.values = function() {
+                $http({
+                    method: "GET",
+                    url: "/polling/list",
+                    data: JSON.stringify({startIndex: $scope.startIndex, count: $scope.count})
+                }).then(function successCallback(response) {
+                    $scope.data = $scope.data.concat(response.data);
+                    $scope.startIndex += response.data.length;
+                    if (response.data.length - $scope.count != 0) {
+                        $scope.count = 0;
+                    }
+                })
+            };
+            $scope.values();
+        });
+    </script>
+</head>
+<body>
+<h1 class="text-center">List of available polling</h1>
+<div ng-app="PollingList" ng-controller="PollingController" class="row">
+    <div class="col-sm-2"></div>
+    <ul class="list-group col-sm-8">
+        <li ng-repeat="polling in data track by polling.id">
+            <a href="/polling/{{polling.id}}" name="a_{{polling.id}}" class="list-group-item text-center">{{polling.name}}</a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
