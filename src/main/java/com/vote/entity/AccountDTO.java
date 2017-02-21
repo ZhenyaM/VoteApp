@@ -5,35 +5,28 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-
 /**
  * {@author Evgeniy}
  */
-@Entity
-@Table(name = "account")
-public class Account extends DomainIdObject {
+public class AccountDTO {
 
-	@NotNull
 	@Email
-	@Length(min = 4, max = 50)
-	@Column(name = "email")
-	private String email;
-
-	@NotNull
 	@NotEmpty
 	@Length(min = 4, max = 50)
-	@Column(name = "password")
+	private String email;
+
+	@NotEmpty
+	@Length(min = 4, max = 50)
 	private String password;
 
-	@Column(name = "role")
 	private Roles role;
 
+	@NotEmpty
+	@Length(min = 4, max = 50)
+	private String confirmPassword;
+
 	public String getEmail() {
-		return this.email;
+		return email;
 	}
 
 	public void setEmail(String email) {
@@ -41,7 +34,7 @@ public class Account extends DomainIdObject {
 	}
 
 	public String getPassword() {
-		return this.password;
+		return password;
 	}
 
 	public void setPassword(String password) {
@@ -49,10 +42,31 @@ public class Account extends DomainIdObject {
 	}
 
 	public Roles getRole() {
-		return this.role;
+		return role;
 	}
 
 	public void setRole(Roles role) {
 		this.role = role;
+	}
+
+	public String getConfirmPassword() {
+		return confirmPassword;
+	}
+
+	public void setConfirmPassword(String confirmPassword) {
+		this.confirmPassword = confirmPassword;
+	}
+
+	public boolean isPasswordConfirmed() {
+		return this.password != null &&
+				this.password.equals(this.confirmPassword);
+	}
+
+	public Account create() {
+		Account account = new Account();
+		account.setEmail(this.email);
+		account.setPassword(this.password);
+		account.setRole(this.role);
+		return account;
 	}
 }
