@@ -1,12 +1,10 @@
 package com.vote.service;
 
+import com.vote.entity.Person;
 import com.vote.entity.Polling;
-import com.vote.entity.PollingSchedule;
-import com.vote.entity.Vote;
-import com.vote.utils.Result;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * {@author Evgeniy}
@@ -17,15 +15,10 @@ public interface PollingService {
 
 	List<Polling> getPollingList(Integer startIndex, Integer count);
 
-	void createPolling(Polling polling);
+	void createPolling(Polling polling, Person person);
 
-	Result startPolling(Integer id);
+	void startPolling(Integer id, Person person);
 
-	Result endPolling(Integer id);
+	void endPolling(Integer id, Person person);
 
-	List<Vote> getVotes(Integer id);
-
-	Map<String, Long> getVotesStatistic(Integer id);
-
-	void registerVote(Integer id, Vote vote);
 }

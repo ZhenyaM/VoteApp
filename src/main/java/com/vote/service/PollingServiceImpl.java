@@ -1,23 +1,17 @@
 package com.vote.service;
 
-import com.vote.dao.DataRepository;
+import com.vote.dao.PollingRepository;
+import com.vote.entity.Person;
 import com.vote.entity.Polling;
-import com.vote.entity.PollingSchedule;
-import com.vote.entity.Vote;
-import com.vote.utils.Result;
+import com.vote.utils.exeception.PollingNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
 
 /**
  * {@author Evgeniy}
@@ -27,88 +21,65 @@ public class PollingServiceImpl implements PollingService {
 
 	@Autowired
 	@Qualifier("pollingRepository")
-	private DataRepository dao;
+	private PollingRepository pollingDAO;
 
 	@Transactional
 	@Override
-	public void createPolling(Polling polling) {
+	public void createPolling(Polling polling, Person person) {
 		polling.getVariants().forEach((v) -> v.setPolling(polling));
-		this.dao.createPolling(polling);
+		polling.setOwner(person);
+		this.pollingDAO.createPolling(polling);
 	}
 
 	@Transactional
 	@Override
 	public Polling getPolling(Integer id) {
-		List<Polling> polling = this.dao.getPolling(id);
+		List<Polling> polling = this.pollingDAO.getPolling(id);
 		if (polling.size() == 1) {
 			return polling.get(0);
 		} else {
-			//TODO:handle this case
-			return null;
+			throw new PollingNotFoundException("Polling with current id not present: " + id);
 		}
 	}
 
 	@Transactional
 	@Override
 	public List<Polling> getPollingList(Integer startIndex, Integer count) {
-		return this.dao.getPollingList(startIndex, count);
+		return this.pollingDAO.getPollingList(startIndex, count);
 	}
 
 	@Transactional
 	@Override
-	public Result startPolling(Integer id) {
-		return this.getResult(id, Polling::setStartTime);
-	}
-
-	@Transactional
-	@Override
-	public Result endPolling(Integer id) {
-		return this.getResult(id, Polling::setEndTime);
-	}
-
-	@Transactional
-	@Override
-	public List<Vote> getVotes(Integer id) {
-		List<Polling> pollingList = this.dao.getPolling(id);
-		if (pollingList.isEmpty()) {
-			return Collections.emptyList();
-		}
-		Polling polling = pollingList.get(0);
-		return polling != null ? this.dao.getVotesOfPolling(polling) : Collections.emptyList();
-	}
-
-	@Transactional
-	@Override
-	public Map<String, Long> getVotesStatistic(Integer id) {
-		return this.getVotes(id).stream().collect(groupingBy(
-				(Vote e) -> e.getPollingChoose().getPollingVariant(),
-				Collectors.counting()));
-	}
-
-	@Transactional
-	@Override
-	public void registerVote(Integer id, Vote vote) {
-		//TODO: check if vote already present
-		boolean isVotePresent = this.getVotes(id).stream().anyMatch((v) ->
-				v.getVoter().equals(vote.getVoter()) && v.getPolling().equals(vote.getPolling()));
-		if (!isVotePresent) {
-			this.dao.registerVote(vote);
+	public void startPolling(Integer id, Person person) {
+		Polling polling = this.getPolling(id);
+		if (person.equals(polling.getOwner())) {
+			if (polling.getStartTime() == null) {
+				polling.setStartTime(LocalDateTime.now());
+				this.pollingDAO.updatePolling(polling);
+			} else {
+				throw new IllegalStateException("Polling already start");
+			}
 		} else {
-			//TODO: throw exception for this case
+			throw new SessionAuthenticationException("Only owner may start polling");
 		}
 	}
 
-	private Result getResult(Integer id, BiConsumer<Polling, LocalDateTime> time) {
-		List<Polling> pollingList = this.dao.getPolling(id);
-		if (pollingList.isEmpty() ) {
-			return Result.NOT_FOUND;
-		}
-		Polling polling = pollingList.get(0);
-		if (polling.getStartTime() != null) {
-			return Result.FAILED;
+	@Transactional
+	@Override
+	public void endPolling(Integer id, Person person) {
+		Polling polling = this.getPolling(id);
+		if (person.equals(polling.getOwner())) {
+			if (polling.getStartTime() == null) {
+				throw new IllegalStateException("Polling not started yet");
+			}
+			if (polling.getEndTime() == null) {
+				polling.setEndTime(LocalDateTime.now());
+				this.pollingDAO.updatePolling(polling);
+			} else {
+				throw new IllegalStateException("Polling already end");
+			}
 		} else {
-			time.andThen((p, t) -> this.dao.updatePolling(polling)).accept(polling, LocalDateTime.now());
-			return Result.SUCCESS;
+			throw new SessionAuthenticationException("Only owner may finish polling");
 		}
 	}
 
